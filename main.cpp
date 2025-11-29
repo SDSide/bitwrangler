@@ -7,7 +7,7 @@ int main()
     // x and y of retagle
 
     // window
-    sf::RenderWindow window(sf::VideoMode({800, 600}), "window");
+    sf::RenderWindow window(sf::VideoMode({600, 600}), "window");
 
     // retangle
     sf::RectangleShape rectangle({300.f, 300.f});
