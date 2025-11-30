@@ -1,44 +1,37 @@
 // all library used
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include <cstdint>
 
-sf::Sprite sprite;
-sf::RectangleShape shape;
-sf::Text text;
+unsigned int WIDTH = 800.f;
+unsigned int HEIGHT = 600.f;
+
+sf::Texture texture(sf::Vector2u(WIDTH, HEIGHT));
 
 int main()
 {
-    // Create a new render-window
-    sf::RenderWindow window(sf::VideoMode({800, 600}), "SFML window");
+    sf::RenderWindow window(sf::VideoMode({WIDTH, HEIGHT}), "window");
 
-    // Create a new render-texture
-    sf::RenderTexture texture({500, 500});
-
-    // The main loop
+    // loop
     while (window.isOpen())
     {
-       // Event processing
-       // ...
-
-       // Clear the whole texture with red color
-       texture.clear(sf::Color::Red);
-
-       // Draw stuff to the texture
-       texture.draw(sprite);  // sprite is a sf::Sprite
-       texture.draw(shape);   // shape is a sf::Shape
-       texture.draw(text);    // text is a sf::Text
-
-       // We're done drawing to the texture
-       texture.display();
-
-       // Now we start rendering to the window, clear it first
-       window.clear();
-
-       // Draw the texture
-       sf::Sprite sprite(texture.getTexture());
-       window.draw(sprite);
-
-       // End the current frame and display its contents on screen
-       window.display();
+        // events
+        while (std::optional event = window.pollEvent())
+        {
+            // close button click
+            if (event->is<sf::Event::Closed>())
+            {
+                window.close();
+            }
+            else if (event->is<sf::Event::Resized>())
+            {
+                sf::View view({WIDTH/2, HEIGHT/2}, sf::Vector2f(window.getSize()));
+                window.setView(view);
+            }
+        }
+        window.clear(sf::Color(127, 127, 127));
+        window.display();
     }
-}   
+
+    return 0;
+}
