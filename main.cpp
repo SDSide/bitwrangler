@@ -3,13 +3,11 @@
 #include <cstdint>
 
 struct Color {
-    std::uint8_t r;
-    std::uint8_t g;
-    std::uint8_t b;
+    uint8_t r, g, b; // refactoring begins oh god
 };
 
 
-int setpixel(unsigned int x, unsigned int y, std::vector<std::uint8_t>& pixels, unsigned int width, const Color& color) {
+int setpixel(unsigned int x, unsigned int y, std::vector<std::uint8_t>& pixels, unsigned int width, const Color color) {
             std::size_t i = (y * width + x) * 4;    // index = (row offset * width + x offset) * 4 bytes.
             pixels[i + 0] = color.r;                // R
             pixels[i + 1] = color.g;                // G
