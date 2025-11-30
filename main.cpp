@@ -2,50 +2,43 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 
+sf::Sprite sprite;
+sf::RectangleShape shape;
+sf::Text text;
+
 int main()
 {
-    // x and y of retagle
+    // Create a new render-window
+    sf::RenderWindow window(sf::VideoMode({800, 600}), "SFML window");
 
-    // window
-    sf::RenderWindow window(sf::VideoMode({600, 600}), "window");
+    // Create a new render-texture
+    sf::RenderTexture texture({500, 500});
 
-    // retangle
-    sf::RectangleShape rectangle({300.f, 300.f});
-
-    // retagl origin
-    rectangle.setOrigin({150.f, 150.f});
-
-    // trnformat
-    rectangle.setPosition({300.f, 300.f});
-    
-    // fill
-    rectangle.setFillColor(sf::Color{127, 0, 127});
-    rectangle.setOutlineThickness({-3.f});
-    rectangle.setOutlineColor(sf::Color{0, 0, 127});
-
-    // loop
+    // The main loop
     while (window.isOpen())
     {
-        // events
-        while (std::optional event = window.pollEvent())
-        {
-            // close button click
-            if (event->is<sf::Event::Closed>())
-            {
-                window.close();
-            }
-            else if (event->is<sf::Event::Resized>())
-            {
-                sf::View view({400.f, 300.f}, sf::Vector2f(window.getSize()));
-                window.setView(view);
-            }
-        }
+       // Event processing
+       // ...
 
-        // fill window color
-        window.clear(sf::Color(127, 0, 0));
-        window.draw(rectangle);
-        window.display();
+       // Clear the whole texture with red color
+       texture.clear(sf::Color::Red);
+
+       // Draw stuff to the texture
+       texture.draw(sprite);  // sprite is a sf::Sprite
+       texture.draw(shape);   // shape is a sf::Shape
+       texture.draw(text);    // text is a sf::Text
+
+       // We're done drawing to the texture
+       texture.display();
+
+       // Now we start rendering to the window, clear it first
+       window.clear();
+
+       // Draw the texture
+       sf::Sprite sprite(texture.getTexture());
+       window.draw(sprite);
+
+       // End the current frame and display its contents on screen
+       window.display();
     }
-
-    return 0;
-}
+}   
