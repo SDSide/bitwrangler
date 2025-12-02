@@ -2,6 +2,7 @@
 #include <array>
 #include <vector>
 #include <cstdint>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 
@@ -41,11 +42,10 @@ void renderquad(unsigned x0, unsigned y0,
 int main() {
 
     // boilerplate window size shit. i really should pick a widescreen resolution.
-    const unsigned width = 320;
-    const unsigned height = 240;
+    // const unsigned width = 320, height = 240;
 
     // 640*360 should be adequate for most displays. maybe ill make a 480*360 mode for 4:3 compat.
-    // const unsigned width = 640, height = 360;
+    const unsigned width = 640, height = 360;
 
     sf::RenderWindow window(sf::VideoMode({width, height}), "bitwrangler window", sf::Style::Default);
     window.setVerticalSyncEnabled(true);
@@ -134,15 +134,16 @@ int main() {
     
     std::vector<uint8_t> framebuffer(width * height); // framebuffer
 
+    // clear screen
+
     for (unsigned y = 0; y < height; ++y) {
         for (unsigned x = 0; x < width; ++x) {
-            uint8_t idx = x % 0xFF;                   // modulo 256 :3
+            uint8_t idx = 122;                  // modulo 256 :3
             setpixel(x, y, framebuffer, width, idx);
         }
     }
 
-    renderquad(50, 50, framebuffer, 50, 50, width, height, 2);
-    renderquad(50, 250, framebuffer, 70, 70, width, height, 69);
+    renderquad(16, 16, framebuffer, width - 32, height - 32, width, height, 123);
 
 
     // this is the ACTUAL 4 byte buffer used for display :P
