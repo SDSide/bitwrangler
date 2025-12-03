@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <array>
 #include <vector>
+#include <string>
 #include <cstdint>
 #include <cmath>
 #include <fstream>
@@ -14,8 +15,7 @@ struct Color {
 void setpixel(unsigned x, unsigned y,
               std::vector<uint8_t>& framebuffer,
               unsigned width,
-              uint8_t colorIndex)
-{
+              uint8_t colorIndex) {
     if (colorIndex != 0) {
         framebuffer[y * width + x] = colorIndex;
     }
@@ -27,8 +27,7 @@ void renderquad(unsigned x0, unsigned y0,
                 unsigned rectH,
                 unsigned fbW,
                 unsigned fbH,
-                uint8_t colorIndex)
-{
+                uint8_t colorIndex) {
     for (unsigned y = y0; y < y0 + rectH; ++y) {
         for (unsigned x = x0; x < x0 + rectW; ++x) {
             if (x < fbW && y < fbH)
@@ -37,15 +36,53 @@ void renderquad(unsigned x0, unsigned y0,
     }
 }
 
+void loadimage(const std::string& filename,
+               std::vector<uint16_t>& array,
+               uint16_t width,
+               uint16_t height)
+{
+    std::ifstream file(filename);
+    if (!file) {
+        std::cerr << "Failed to open: " << filename << "\n";
+        return;
+    
+    }
+    
+    const uint8_t headersize = 2;
 
+    // allocate the space we will write into, +2 is size of image header, will make image format more elaborate at later date.
+    array.resize(width * height + headersize);
+
+    // loop header length!!!
+    for (int i = 0; i < headersize; ++i) {
+        file >> array[i];
+    }
+
+    for (uint16_t y = 0; y < height; ++y) {
+        for (uint16_t x = 0; x < width; ++x) {
+            file >> array[y * width + x + headersize];
+        }
+    }
+
+    std::cout << "Image size: " << array[0] << ", " << array[0] << "\n";
+
+    int n = array.size();
+
+    std::cout << "Array Elements: ";
+    for (int i = 0; i < n; i++)
+        std::cout << array[i] << " ";
+    std::cout << "\n";
+    std::cout << n;
+    std::cout << "\n";
+}
 
 int main() {
 
     // boilerplate window size shit. i really should pick a widescreen resolution.
-    // const unsigned width = 320, height = 240;
+    const unsigned width = 320, height = 240;
 
     // 640*360 should be adequate for most displays. maybe ill make a 480*360 mode for 4:3 compat.
-    const unsigned width = 640, height = 360;
+    // const unsigned width = 640, height = 360;
 
     sf::RenderWindow window(sf::VideoMode({width, height}), "bitwrangler window", sf::Style::Default);
     window.setVerticalSyncEnabled(true);
@@ -138,13 +175,14 @@ int main() {
 
     for (unsigned y = 0; y < height; ++y) {
         for (unsigned x = 0; x < width; ++x) {
-            uint8_t idx = 122;                  // modulo 256 :3
+            uint8_t idx = x % 256;                  // modulo 256 :3
             setpixel(x, y, framebuffer, width, idx);
         }
     }
-
+    
+    std::vector<uint16_t> image;
+    loadimage("images/image.bwif", image, 4, 4);
     renderquad(16, 16, framebuffer, width - 32, height - 32, width, height, 123);
-
 
     // this is the ACTUAL 4 byte buffer used for display :P
 
@@ -169,10 +207,6 @@ int main() {
     // FIGURED OUT HOW TEXTURES WORK!!!
     // creates texture which fills the screen ofc
     sf::Texture texture({width, height});
-
-    // upload pixels
-    // i dont actually know what this fart does...
-    
 
     sf::Sprite sprite(texture);
 
