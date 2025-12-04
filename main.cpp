@@ -11,6 +11,7 @@ struct Color {
     uint8_t r, g, b; // refactoring begins oh god
 };
 
+const uint8_t headersize = 2;
 
 void setpixel(unsigned x, unsigned y,
               std::vector<uint8_t>& framebuffer,
@@ -36,6 +37,35 @@ void renderquad(unsigned x0, unsigned y0,
     }
 }
 
+// fix this fucking function when u get home im so fucking tired bro
+void renderimage(
+    unsigned x0, unsigned y0,
+    std::vector<uint8_t>& framebuffer,
+    unsigned rectW,
+    unsigned rectH,
+    unsigned fbW,
+    unsigned fbH,
+    const std::vector<uint16_t>& image   // palette indices
+) {
+    for (unsigned iy = 0; iy < rectH; ++iy) {
+        for (unsigned ix = 0; ix < rectW; ++ix) {
+
+            unsigned fbX = x0 + ix;
+            unsigned fbY = y0 + iy;
+
+            if (fbX < fbW && fbY < fbH) {
+                unsigned imgIndex = iy * rectW + ix + headersize;
+                uint16_t colorIndex = image[imgIndex];
+
+                setpixel(fbX, fbY, framebuffer, fbW, colorIndex);
+            }
+        }
+    }
+}
+
+
+
+
 void loadimage(const std::string& filename,
                std::vector<uint16_t>& array,
                uint16_t width,
@@ -47,8 +77,7 @@ void loadimage(const std::string& filename,
         return;
     
     }
-    
-    const uint8_t headersize = 2;
+
 
     // allocate the space we will write into, +2 is size of image header, will make image format more elaborate at later date.
     array.resize(width * height + headersize);
@@ -64,13 +93,13 @@ void loadimage(const std::string& filename,
         }
     }
 
-    std::cout << "Image size: " << array[0] << ", " << array[0] << "\n";
+    std::cout << "Image size: " << array[0] << ", " << array[1] << "\n";
 
     int n = array.size();
 
     std::cout << "Array Elements: ";
-    for (int i = 0; i < n; i++)
-        std::cout << array[i] << " ";
+    for (int i = 0; i < n - headersize; i++)
+        std::cout << array[i + headersize] << " ";
     std::cout << "\n";
     std::cout << n;
     std::cout << "\n";
@@ -79,7 +108,7 @@ void loadimage(const std::string& filename,
 int main() {
 
     // boilerplate window size shit. i really should pick a widescreen resolution.
-    const unsigned width = 320, height = 240;
+    const unsigned width = 160, height = 120;
 
     // 640*360 should be adequate for most displays. maybe ill make a 480*360 mode for 4:3 compat.
     // const unsigned width = 640, height = 360;
@@ -175,13 +204,15 @@ int main() {
 
     for (unsigned y = 0; y < height; ++y) {
         for (unsigned x = 0; x < width; ++x) {
-            uint8_t idx = x % 256;                  // modulo 256 :3
+            // uint8_t idx = x % 256;                  // modulo 256 :3
+            uint8_t idx = 121;
             setpixel(x, y, framebuffer, width, idx);
         }
     }
     
     std::vector<uint16_t> image;
-    loadimage("images/image.bwif", image, 4, 4);
+    loadimage("images/image.bwif", image, 16, 16);
+    renderimage(0, 0, framebuffer, 16, 16, width, height, image);
     renderquad(16, 16, framebuffer, width - 32, height - 32, width, height, 123);
 
     // this is the ACTUAL 4 byte buffer used for display :P
@@ -194,7 +225,7 @@ int main() {
         for (unsigned x = 0; x < width; ++x) {              // repeat over width of whole screen
 
             uint8_t index = framebuffer[y * width + x];     // index = (row offset * width + x offset), same as old code
-            Color c = palette[index];                       // c has the r, g and b component,
+            Color c = palette[index];                       // c has the r, g and b component
 
             std::size_t i = (y * width + x) * 4;
             rgba[i + 0] = c.r;
