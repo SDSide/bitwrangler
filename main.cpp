@@ -6,21 +6,14 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <algorithm>
+#include "headers/render.hpp"
 
 struct Color {
     uint8_t r, g, b; // refactoring begins oh god
 };
 
 const uint8_t headersize = 2;
-
-void setpixel(unsigned x, unsigned y,
-              std::vector<uint8_t>& framebuffer,
-              unsigned width,
-              uint8_t colorIndex) {
-    if (colorIndex != 0) {
-        framebuffer[y * width + x] = colorIndex;
-    }
-}
 
 void renderquad(unsigned x0, unsigned y0,
                 std::vector<uint8_t>& framebuffer,
@@ -43,9 +36,11 @@ void renderimage(
     std::vector<uint8_t>& framebuffer,
     unsigned rectW,
     unsigned rectH,
-    unsigned fbW,
-    unsigned fbH,
-    const std::vector<uint16_t>& image   // palette indices
+    int fbW,
+    int fbH,
+    const std::vector<uint16_t>& image,   // palette indices
+    bool flipX,
+    bool flipY
 ) {
     for (unsigned iy = 0; iy < rectH; ++iy) {
         for (unsigned ix = 0; ix < rectW; ++ix) {
@@ -54,8 +49,10 @@ void renderimage(
             unsigned fbY = y0 + iy;
 
             if (fbX < fbW && fbY < fbH) {
-                unsigned imgIndex = iy * rectW + ix + headersize;
-                uint16_t colorIndex = image[imgIndex];
+
+                int rx = flipX ? (rectW - 1 - ix) : ix;  // read-from index, flipped or not
+
+                uint16_t colorIndex = image[iy * rectW + rx + headersize];
 
                 setpixel(fbX, fbY, framebuffer, fbW, colorIndex);
             }
@@ -63,7 +60,9 @@ void renderimage(
     }
 }
 
-
+float clip(float n, float lower, float upper) {
+  return std::max(lower, std::min(n, upper));
+}
 
 
 void loadimage(const std::string& filename,
@@ -89,7 +88,7 @@ void loadimage(const std::string& filename,
 
     for (uint16_t y = 0; y < height; ++y) {
         for (uint16_t x = 0; x < width; ++x) {
-            file >> array[y * width + x + headersize];
+            file >> array[headersize + y * width + x];
         }
     }
 
@@ -108,7 +107,7 @@ void loadimage(const std::string& filename,
 int main() {
 
     // boilerplate window size shit. i really should pick a widescreen resolution.
-    const unsigned width = 160, height = 120;
+    const unsigned width = 320, height = 240;
 
     // 640*360 should be adequate for most displays. maybe ill make a 480*360 mode for 4:3 compat.
     // const unsigned width = 640, height = 360;
@@ -200,40 +199,31 @@ int main() {
     
     std::vector<uint8_t> framebuffer(width * height); // framebuffer
 
+    std::float_t x_velocity = 0;
+    std::float_t y_velocity = 0;
+    float player_x   = width >> 1;
+    float player_y   = height>> 1;
+    bool  player_left = false;
+
+    unsigned int timer = 0;
+
     // clear screen
 
-    for (unsigned y = 0; y < height; ++y) {
-        for (unsigned x = 0; x < width; ++x) {
-            // uint8_t idx = x % 256;                  // modulo 256 :3
-            uint8_t idx = 121;
-            setpixel(x, y, framebuffer, width, idx);
-        }
-    }
+    //for (unsigned y = 0; y < height; ++y) {
+    //    for (unsigned x = 0; x < width; ++x) {
+    //        uint8_t idx = x % 256;                  // modulo 256 :3
+    //        // uint8_t idx = 121;
+    //        setpixel(x, y, framebuffer, width, idx);
+    //    }
+    //}
     
     std::vector<uint16_t> image;
-    loadimage("images/image.bwif", image, 16, 16);
-    renderimage(0, 0, framebuffer, 16, 16, width, height, image);
-    renderquad(16, 16, framebuffer, width - 32, height - 32, width, height, 123);
+    loadimage("images/image.bwif", image, 16, 16);                                  // lowkey thought i had a bug in my code
+    
 
     // this is the ACTUAL 4 byte buffer used for display :P
 
     std::vector<uint8_t> rgba(width * height * 4); 
-
-    // not obvious conversion, framebuffer -> rgba
-
-    for (unsigned y = 0; y < height; ++y) {                 // repeat over height of whole screen
-        for (unsigned x = 0; x < width; ++x) {              // repeat over width of whole screen
-
-            uint8_t index = framebuffer[y * width + x];     // index = (row offset * width + x offset), same as old code
-            Color c = palette[index];                       // c has the r, g and b component
-
-            std::size_t i = (y * width + x) * 4;
-            rgba[i + 0] = c.r;
-            rgba[i + 1] = c.g;
-            rgba[i + 2] = c.b;
-            rgba[i + 3] = 255;
-        }
-    }
 
     // FIGURED OUT HOW TEXTURES WORK!!!
     // creates texture which fills the screen ofc
@@ -245,6 +235,58 @@ int main() {
         while (auto event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>())
                 window.close();
+        }
+
+        timer += 1;
+
+        std::fill(framebuffer.begin(),framebuffer.end(), 255);
+
+        sf::Vector2i mouse_pos = sf::Mouse::getPosition(window);
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)) {
+                // left key is pressed
+               x_velocity -= 0.25;
+               player_left = true;
+            } 
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) {
+                // right key is pressed
+               x_velocity += 0.25;
+               player_left = false;
+            }
+        else {
+           x_velocity *= 0.90; 
+        }
+
+        if (abs(x_velocity) > 2.5) {
+            x_velocity = abs(x_velocity) / x_velocity * 2.5;
+        }
+
+        if (abs(x_velocity) < 0.25) {
+            x_velocity = 0;
+        }
+
+        player_x += x_velocity;
+
+        std::cout << x_velocity << "\n";
+
+        renderquad(16, 16, framebuffer, width - 32, height - 32, width, height, 123);   // i am going to kill myself
+        renderimage(player_x, player_y, framebuffer, 16, 16, width, height, image, player_left, false);       // cuz i initialised the image as 4x4 and i was so confused lmao
+        // renderquad(0, 0, framebuffer, 16, 16, width, height, 56);
+
+        // not obvious conversion, framebuffer -> rgba
+
+        for (unsigned y = 0; y < height; ++y) {                 // repeat over height of whole screen
+            for (unsigned x = 0; x < width; ++x) {              // repeat over width of whole screen
+
+                uint8_t index = framebuffer[y * width + x];     // index = (row offset * width + x offset), same as old code
+                Color c = palette[index];                       // c has the r, g and b component
+
+                std::size_t i = (y * width + x) * 4;
+                rgba[i + 0] = c.r;
+                rgba[i + 1] = c.g;
+                rgba[i + 2] = c.b;
+                rgba[i + 3] = 255;
+            }
         }
 
         texture.update(rgba.data(), {width, height}, {0, 0});
