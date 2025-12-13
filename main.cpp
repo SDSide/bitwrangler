@@ -15,95 +15,6 @@ struct Color {
 
 const uint8_t headersize = 2;
 
-void renderquad(unsigned x0, unsigned y0,
-                std::vector<uint8_t>& framebuffer,
-                unsigned rectW,
-                unsigned rectH,
-                unsigned fbW,
-                unsigned fbH,
-                uint8_t colorIndex) {
-    for (unsigned y = y0; y < y0 + rectH; ++y) {
-        for (unsigned x = x0; x < x0 + rectW; ++x) {
-            if (x < fbW && y < fbH)
-                setpixel(x, y, framebuffer, fbW, colorIndex);
-        }
-    }
-}
-
-// fix this fucking function when u get home im so fucking tired bro
-void renderimage(
-    unsigned x0, unsigned y0,
-    std::vector<uint8_t>& framebuffer,
-    unsigned rectW,
-    unsigned rectH,
-    int fbW,
-    int fbH,
-    const std::vector<uint16_t>& image,   // palette indices
-    bool flipX,
-    bool flipY
-) {
-    for (unsigned iy = 0; iy < rectH; ++iy) {
-        for (unsigned ix = 0; ix < rectW; ++ix) {
-
-            unsigned fbX = x0 + ix;
-            unsigned fbY = y0 + iy;
-
-            if (fbX < fbW && fbY < fbH) {
-
-                int rx = flipX ? (rectW - 1 - ix) : ix;  // read-from index, flipped or not
-
-                uint16_t colorIndex = image[iy * rectW + rx + headersize];
-
-                setpixel(fbX, fbY, framebuffer, fbW, colorIndex);
-            }
-        }
-    }
-}
-
-float clip(float n, float lower, float upper) {
-  return std::max(lower, std::min(n, upper));
-}
-
-
-void loadimage(const std::string& filename,
-               std::vector<uint16_t>& array,
-               uint16_t width,
-               uint16_t height)
-{
-    std::ifstream file(filename);
-    if (!file) {
-        std::cerr << "Failed to open: " << filename << "\n";
-        return;
-    
-    }
-
-
-    // allocate the space we will write into, +2 is size of image header, will make image format more elaborate at later date.
-    array.resize(width * height + headersize);
-
-    // loop header length!!!
-    for (int i = 0; i < headersize; ++i) {
-        file >> array[i];
-    }
-
-    for (uint16_t y = 0; y < height; ++y) {
-        for (uint16_t x = 0; x < width; ++x) {
-            file >> array[headersize + y * width + x];
-        }
-    }
-
-    std::cout << "Image size: " << array[0] << ", " << array[1] << "\n";
-
-    int n = array.size();
-
-    std::cout << "Array Elements: ";
-    for (int i = 0; i < n - headersize; i++)
-        std::cout << array[i + headersize] << " ";
-    std::cout << "\n";
-    std::cout << n;
-    std::cout << "\n";
-}
-
 int main() {
 
     // boilerplate window size shit. i really should pick a widescreen resolution.
@@ -218,7 +129,7 @@ int main() {
     //}
     
     std::vector<uint16_t> image;
-    loadimage("images/image.bwif", image, 16, 16);                                  // lowkey thought i had a bug in my code
+    loadimage("images/image.bwif", image, 16, 16, headersize);                                  // lowkey thought i had a bug in my code
     
 
     // this is the ACTUAL 4 byte buffer used for display :P
@@ -270,7 +181,7 @@ int main() {
         std::cout << x_velocity << "\n";
 
         renderquad(16, 16, framebuffer, width - 32, height - 32, width, height, 123);   // i am going to kill myself
-        renderimage(player_x, player_y, framebuffer, 16, 16, width, height, image, player_left, false);       // cuz i initialised the image as 4x4 and i was so confused lmao
+        renderimage(player_x, player_y, framebuffer, 16, 16, width, height, image, player_left, false, headersize);       // cuz i initialised the image as 4x4 and i was so confused lmao
         // renderquad(0, 0, framebuffer, 16, 16, width, height, 56);
 
         // not obvious conversion, framebuffer -> rgba
