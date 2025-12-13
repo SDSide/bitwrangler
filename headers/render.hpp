@@ -5,6 +5,9 @@
 #include <cstdint>
 #include <string>
 
+// FOR ALL YOU PRICKS WONDERING WHY I HAVE THE FUCKIN NAMES IN HERE TOO...
+// ITS SO I REMEMBER THEM :BRUH:
+
 void setpixel(unsigned x, unsigned y,
               std::vector<uint8_t>& framebuffer,
               unsigned width,
@@ -18,7 +21,6 @@ void renderquad(unsigned x0, unsigned y0,
                 unsigned fbH,
                 uint8_t colorIndex);
 
-// fix this fucking function when u get home im so fucking tired bro
 void renderimage(
     unsigned x0, unsigned y0,
     std::vector<uint8_t>& framebuffer,
@@ -26,7 +28,7 @@ void renderimage(
     unsigned rectH,
     int fbW,
     int fbH,
-    const std::vector<uint16_t>& image,   // palette indices
+    const std::vector<uint16_t>& image,
     bool flipX,
     bool flipY,
     int headersize
