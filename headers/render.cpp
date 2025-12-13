@@ -49,7 +49,7 @@ void renderimage(
 
             if (fbX < fbW && fbY < fbH) {
 
-                int rx = flipX ? (rectW - 1 - ix) : ix;  // read-from index, flipped or not
+                int rx = flipX ? (rectW - 1 - ix) : ix;  // read-from index, flipped or not // BTW GENUINELY IM PROUD OF THIS SOLUTION
 
                 uint16_t colorIndex = image[iy * rectW + rx + headersize];
 
@@ -59,6 +59,7 @@ void renderimage(
     }
 }
 
+// not sure why this is in render.cpp necessarily but im sure it doesnt hurt anyone
 float clip(float n, float lower, float upper) {
   return std::max(lower, std::min(n, upper));
 }

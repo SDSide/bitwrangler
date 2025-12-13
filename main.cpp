@@ -30,6 +30,7 @@ int main() {
     // IDK WHY I SAID TS WAS AN ARRAY IT WAS A VECTOR
     // this is js 1 byte per pixel instead of 4
     // js an array filled with structs :sob: this is likely insanely inefficient
+    // IM MOVING THIS SHIT INTO A PALETTE.CPP FILE BIATCHGHH
     // -----------------------------
     std::array<Color, 256> palette = {{
         {0xff,0x00,0xff},{0x5d,0x03,0x03},{0x93,0x02,0x02},{0xc9,0x01,0x01},
@@ -154,19 +155,13 @@ int main() {
 
         sf::Vector2i mouse_pos = sf::Mouse::getPosition(window);
 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)) {
-                // left key is pressed
-               x_velocity -= 0.25;
-               player_left = true;
-            } 
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) {
-                // right key is pressed
-               x_velocity += 0.25;
-               player_left = false;
-            }
-        else {
-           x_velocity *= 0.90; 
-        }
+        float move_dir = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) - sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left);
+        x_velocity += move_dir / 4;
+
+        if (move_dir == 0 && !(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)))
+        {x_velocity *= 0.90;} 
+        else 
+        {player_left = (move_dir == -1);}
 
         if (abs(x_velocity) > 2.5) {
             x_velocity = abs(x_velocity) / x_velocity * 2.5;
