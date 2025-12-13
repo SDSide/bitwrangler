@@ -91,15 +91,4 @@ void loadimage(const std::string& filename,
             file >> array[headersize + y * width + x];
         }
     }
-
-    std::cout << "Image size: " << array[0] << ", " << array[1] << "\n";
-
-    int n = array.size();
-
-    std::cout << "Array Elements: ";
-    for (int i = 0; i < n - headersize; i++)
-        std::cout << array[i + headersize] << " ";
-    std::cout << "\n";
-    std::cout << n;
-    std::cout << "\n";
 }

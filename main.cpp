@@ -178,8 +178,6 @@ int main() {
 
         player_x += x_velocity;
 
-        std::cout << x_velocity << "\n";
-
         renderquad(16, 16, framebuffer, width - 32, height - 32, width, height, 123);   // i am going to kill myself
         renderimage(player_x, player_y, framebuffer, 16, 16, width, height, image, player_left, false, headersize);       // cuz i initialised the image as 4x4 and i was so confused lmao
         // renderquad(0, 0, framebuffer, 16, 16, width, height, 56);
